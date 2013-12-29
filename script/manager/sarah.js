@@ -154,12 +154,9 @@ var getRSSFeed = function (url, cache) {
       feed.meta = meta;
     })
     .on('readable', function () {
-      var stream = this;
-      var item;
-      while (item = stream.read()) {
-        item.description = ent.decode(item.description);
-        feed.items.push(item);
-      }
+      var item = this.read();
+      item.description = ent.decode(item.description);
+      feed.items.push(item);
       RSSFeedCache[url] = feed; // Cache
     });
 };
