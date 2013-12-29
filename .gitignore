@@ -32,6 +32,7 @@ plugins/
 script/wsrnode.log
 NodeJSOLD/
 chromeless/
+node_modules/
 
 # External tool builders
 .externalToolBuilders/
