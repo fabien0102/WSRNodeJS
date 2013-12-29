@@ -142,7 +142,7 @@ var getRSSFeed = function (url, cache) {
 
   var FeedParser = require('feedparser');
   var request = require('request');
-  var ent = require('entity/node-ent');
+  var ent = require('ent');
 
   var feed = {
     items: []
