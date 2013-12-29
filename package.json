@@ -19,5 +19,30 @@
   "license": "DO WHAT THE FUCK YOU WANT TO",
   "bugs": {
     "url": "https://github.com/fabien0102/WSRNodeJS/issues"
+  },
+  "dependencies": {
+    "winston": "~0.7.2",
+    "bufferjs": "~2.0.0",
+    "adm-zip": "~0.4.3",
+    "lang": "~0.1.13",
+    "smtp": "~0.1.4",
+    "entity": "0.0.0",
+    "cheerio": "~0.12.4",
+    "ejs": "~0.8.5",
+    "request": "~2.30.0",
+    "express": "~3.4.7",
+    "ejs-locals": "~1.0.2",
+    "querystring": "~0.2.0",
+    "feedparser": "~0.16.4",
+    "cron": "~1.0.1",
+    "email": "~0.2.6",
+    "ncp": "~0.5.0",
+    "resanitize": "~0.3.0",
+    "rssparser": "0.0.4",
+    "sax": "~0.5.8",
+    "uuid": "~1.4.1",
+    "validator": "~2.0.0",
+    "xml": "0.0.10",
+    "xml2js": "~0.4.0"
   }
 }
