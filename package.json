@@ -1,0 +1,23 @@
+{
+  "name": "WSRNodeJS",
+  "version": "3.1.1",
+  "description": "This is the Server Side of the framework [S.A.R.A.H.](http://encausse.net/s-a-r-a-h), an Home Automation project built \r on top of:\r * C# (Kinect) client for Voice, Gesture, Face, QRCode recognition. \r * NodeJS (ExpressJS) server for Internet of Things communication",
+  "main": "script/wsrnode.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:JpEncausse/WSRNodeJS.git"
+  },
+  "keywords": [
+    "domotique",
+    "framework",
+    "s.a.r.a.h."
+  ],
+  "author": "jpencausse",
+  "license": "DO WHAT THE FUCK YOU WANT TO",
+  "bugs": {
+    "url": "https://github.com/fabien0102/WSRNodeJS/issues"
+  }
+}
