@@ -1,5 +1,5 @@
 var winston = require('winston');
-var cronJob = require('../vendor/cron').CronJob;
+var cronJob = require('cron').CronJob;
 
 // ------------------------------------------
 //  START JOB
