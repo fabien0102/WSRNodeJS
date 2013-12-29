@@ -13,7 +13,7 @@
 <div class="modal fade" id="<%= type %>_<%= key %>">
   <div class="modal-dialog">
     <div class="modal-content">
-    
+
   <form class="form-horizontal" method="POST" action="/config" role="form">
   <div class="modal-header">
     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
@@ -23,7 +23,7 @@
     <% if (module.description){ %>
     <p><%= module.description %></p>
     <% } %>
-    
+
 	  <% Object.keys(module).forEach(function(attr){ %>
 	  <% var value = module[attr]; %>
 	  <% if (attr == 'description') return; %>
@@ -36,10 +36,10 @@
 	    </div>
 	  </div>
 	  <% }); %>
-	  
+
 	  <fieldset>
 	    <legend>Grille: </legend>
-      
+
       <div class="form-grid row">
         <div class="col-lg-3">
 		      <select  name="c" class="form-control">
@@ -53,7 +53,7 @@
 		        <option value="black"   <%= module['c'] == 'black'   ? 'selected' : '' %>>black</option>
 		      </select>
         </div>
-      
+
 	  <% ['x','y','w','h'].forEach(function(attr){ %>
 	      <div class="col-lg-2">
 	        <label class="control-label"><%= attr %></label>
@@ -62,11 +62,11 @@
 	  <% }); %>
 	    </div>
 	  </fieldset>
-	  
+
 	  <input type='hidden' name='key' value='<%= (type.length > 0 ? type+'.' : '') + key %>'/>
   </div>
   <div class="modal-footer">
-    <% 
+    <%
       var v = SARAH.ConfigManager.getJSON(key);
       v = v[type] || false; v = v[key]  || false; v = v.version || false;
       if (v) {
@@ -78,7 +78,7 @@
     <input type="submit" class="btn btn-blue" value="Enregistrer" />
   </div>
   </form>
-  
-    </div> 
-  </div> 
-</div> 
+
+    </div>
+  </div>
+</div>
