@@ -4,242 +4,326 @@ var winston = require('winston');
 //  RUN
 // ------------------------------------------
 
-var exists = function(cmd){
-  if (config.modules[cmd] || cmd == 'time'){
+var exists = function (cmd) {
+  if (config.modules[cmd] || cmd == 'time') {
     return true;
   }
-  if (config.phantoms[cmd]){
+  if (config.phantoms[cmd]) {
     return true;
   }
   return false;
-}
+};
 
-var call = function(cmd, data, callback){ 
-  run(cmd, data, false, callback || (function(){}));
-}
+var call = function (cmd, data, callback) {
+  run(cmd, data, false, callback || (function () {}));
+};
 
-var run = function(cmd, options, res, callback){
+var run = function (cmd, options, res, callback) {
   var config = SARAH.ConfigManager.getConfig();
-  var xtend  = require('../lib/extend.js');
-  
+  var xtend = require('../lib/extend.js');
+
   // Backup last command
-  if (res){ // Main request
-    SARAH.context.last =  { 
-      'cmd'    : cmd, 
+  if (res) { // Main request
+    SARAH.context.last = {
+      'cmd': cmd,
       'options': xtend.extend(true, {}, options)
     };
   }
-  
+
   // Run modules script
-  if (config.modules[cmd] || cmd == 'time'){
+  if (config.modules[cmd] || cmd == 'time') {
     SARAH.ScriptManager.run(cmd, options, res, callback);
     return;
   }
-  
+
   // Run phantoms script
   if (config.phantoms[cmd]) {
     SARAH.PhantomManager.run(cmd, options, res, callback);
     return;
   }
 
-  winston.log('warn', 'Module not found: '+ cmd);
-  if (res){ res.end(); }
-}
+  winston.log('warn', 'Module not found: ' + cmd);
+  if (res) {
+    res.end();
+  }
+};
 
-var last = function(res){
-  if (!SARAH.context.last){ return; }
+var last = function (res) {
+  if (!SARAH.context.last) {
+    return;
+  }
   SARAH.run(SARAH.context.last.cmd, SARAH.context.last.options, res);
-}
+};
 
 // ------------------------------------------
 //  DISPATCH
 // ------------------------------------------
 
-var dispatch = function(cmd, options, res){
-  
+var dispatch = function (cmd, options, res) {
+
   var skip = true;
-  if (res){
+  if (res) {
     skip = res.skip;
     res.skip = true;
   }
-  
+
   // Write head
-  if (!skip){ res.writeHead(200, {'Content-Type': 'text/html; charset=utf-8'});  }
-  
+  if (!skip) {
+    res.writeHead(200, {
+      'Content-Type': 'text/html; charset=utf-8'
+    });
+  }
+
   // Dispatch to rules
-  if (SARAH.RuleManager.dispatch(cmd, options)){
-    if (!skip){ res.end(); }
+  if (SARAH.RuleManager.dispatch(cmd, options)) {
+    if (!skip) {
+      res.end();
+    }
     return;
   }
-  
+
   // Write end
-  if (!skip){ 
+  if (!skip) {
     options.tts = SARAH.PluginManager.speak(options.tts, false);
     res.end(options.tts);
     //return;
   }
-  if (options.quiet){ return; } 
+  if (options.quiet) {
+    return;
+  }
 
   // At last try to speak
   if (!res) SARAH.speak(options.tts);
-}
+};
 
 // ------------------------------------------
 //  PRIVATE
 // ------------------------------------------
 
-var callback = function (err, response, body){
+var callback = function (err, response, body) {
   if (err || response.statusCode != 200) {
     winston.info("HTTP Error: ", err, response, body);
     return;
   }
 };
 
-var remote = function(qs, cb){
+var remote = function (qs, cb) {
   var url = SARAH.ConfigManager.getConfig().http.remote;
   var querystring = require('querystring');
   url += '?' + querystring.stringify(qs);
 
-  winston.info('Remote: '+ url);
+  winston.info('Remote: ' + url);
 
   var request = require('request');
-  request({ 'url' : url }, cb || callback);
+  request({
+    'url': url
+  }, cb || callback);
 };
 
-var _key = function(key, action, mod) {
-  if (!key){ return;}
+var _key = function (key, action, mod) {
+  if (!key) {
+    return;
+  }
   winston.info("Key:", action, key, mod);
-  var param = { 'keyMod' : mod };
+  var param = {
+    'keyMod': mod
+  };
   param[action] = key;
   remote(param);
 };
 
 var RSSFeedCache = {};
-var getRSSFeed = function(url, cache){
-  
+var getRSSFeed = function (url, cache) {
+
   // Use cache
-  if (!cache && RSSFeedCache[url]){ return RSSFeedCache[url]; }
-  
+  if (!cache && RSSFeedCache[url]) {
+    return RSSFeedCache[url];
+  }
+
   var FeedParser = require('feedparser');
   var request = require('request');
   var ent = require('entity/node-ent');
-  
-  var feed = { items : [] };
-  
+
+  var feed = {
+    items: []
+  };
+
   request(url)
-  .pipe(new FeedParser())
-  .on('meta', function (meta) { feed.meta = meta; })
-  .on('readable', function() {
-    var stream = this, item;
-    while (item = stream.read()) { 
-      item.description = ent.decode(item.description);
-      feed.items.push(item);
-    }
-    RSSFeedCache[url] = feed; // Cache
-  });
-}
+    .pipe(new FeedParser())
+    .on('meta', function (meta) {
+      feed.meta = meta;
+    })
+    .on('readable', function () {
+      var stream = this;
+      var item;
+      while (item = stream.read()) {
+        item.description = ent.decode(item.description);
+        feed.items.push(item);
+      }
+      RSSFeedCache[url] = feed; // Cache
+    });
+};
 
 // ------------------------------------------
 //  FEATURES
 // ------------------------------------------
 
-var answer = function(cb) {
+var answer = function (cb) {
   var answers = SARAH.ConfigManager.getConfig().bot.answers.split('|');
-  var answer = answers[ Math.floor(Math.random() * answers.length)];
+  var answer = answers[Math.floor(Math.random() * answers.length)];
   SARAH.speak(answer, cb);
-}
+};
 
-var speak = function(tts, cb) {
-  
-  var callback = function(){ SARAH.PluginManager.speak(tts, false); cb(); }
+var speak = function (tts, cb) {
+
+  var callback = function () {
+    SARAH.PluginManager.speak(tts, false);
+    cb();
+  };
   var t2s = SARAH.PluginManager.speak(tts, cb !== undefined);
-  if (!t2s){ if (cb) callback(); return; }
-  
+  if (!t2s) {
+    if (cb) callback();
+    return;
+  }
+
   winston.info("Speak remote: " + t2s);
-  var qs = { 'tts' : t2s }; 
-  if (cb) { qs.sync = true;
+  var qs = {
+    'tts': t2s
+  };
+  if (cb) {
+    qs.sync = true;
     return remote(qs, callback);
   }
   remote(qs);
 };
 
-var shutUp = function() {
+var shutUp = function () {
   winston.info("ShutUp remote");
-  remote({ 'notts' : 'true' });
+  remote({
+    'notts': 'true'
+  });
 };
 
-var play = function(mp3, cb) {
-  if (!mp3){ if (cb) cb(); return;}
-  
+var play = function (mp3, cb) {
+  if (!mp3) {
+    if (cb) cb();
+    return;
+  }
+
   winston.info("Play remote: " + mp3);
-  var qs = { 'play' : mp3 }; 
+  var qs = {
+    'play': mp3
+  };
   if (cb) qs.sync = true;
   remote(qs, cb);
 };
 
-var pause = function(mp3) {
-  if (!mp3){ return;}
+var pause = function (mp3) {
+  if (!mp3) {
+    return;
+  }
   winston.info("Pause remote: " + mp3);
-  remote({ 'pause' : mp3 });
+  remote({
+    'pause': mp3
+  });
 };
-  
-var script = function(uri){
+
+var script = function (uri) {
   var request = require('request');
   var url = 'http://127.0.0.1:' + SARAH.ConfigManager.getConfig().http.port + uri;
-  request({ 'uri' : url }, callback);
-}
+  request({
+    'uri': url
+  }, callback);
+};
 
-var face = function(action) {
-  if (!action){ return;}
+var face = function (action) {
+  if (!action) {
+    return;
+  }
   winston.info("Face Recognition: " + action);
-  remote({ 'face' : action });
+  remote({
+    'face': action
+  });
 };
 
-var gesture = function(action) {
-  if (!action){ return;}
+var gesture = function (action) {
+  if (!action) {
+    return;
+  }
   winston.info("Gesture Recognition: " + action);
-  remote({ 'gesture' : action });
+  remote({
+    'gesture': action
+  });
 };
 
-var keyText = function(text) {
-  if (!text){ return;}
+var keyText = function (text) {
+  if (!text) {
+    return;
+  }
   winston.info("KeyText:", text);
-  remote({ 'keyText' : text });
+  remote({
+    'keyText': text
+  });
 };
 
-var runApp = function(app, params) {
-  if (!app){ return;}
+var runApp = function (app, params) {
+  if (!app) {
+    return;
+  }
   winston.info("Run:", app);
-  var qs = { 'run' : app }
-  if (params) { qs.runp = params; }
+  var qs = {
+    'run': app
+  };
+  if (params) {
+    qs.runp = params;
+  }
   remote(qs);
-}
+};
 
-var activate = function(app) {
-  if (!app){ return;}
+var activate = function (app) {
+  if (!app) {
+    return;
+  }
   winston.info("Activate:", app);
-  remote({ 'activate' : app });
-}
+  remote({
+    'activate': app
+  });
+};
 
-var chromeless = function(url, o, w, h, x, y){
-  var path  = require('path');
+var chromeless = function (url, o, w, h, x, y) {
+  var path = require('path');
   var spawn = require('child_process').spawn;
-  var proc  = path.normalize(__dirname + '../../../chromeless/chromeless.exe');
-  
-  var params  = ['-url', url]
-  
-  if (w !== undefined){ params.push('-w'); params.push(w); }
-  if (h !== undefined){ params.push('-h'); params.push(h); }
-  if (x !== undefined){ params.push('-x'); params.push(x); }
-  if (y !== undefined){ params.push('-y'); params.push(y); }
-  if (o !== undefined){ params.push('-opacity'); params.push(o); }
-  
+  var proc = path.normalize(__dirname + '../../../chromeless/chromeless.exe');
+
+  var params = ['-url', url];
+
+  if (w !== undefined) {
+    params.push('-w');
+    params.push(w);
+  }
+  if (h !== undefined) {
+    params.push('-h');
+    params.push(h);
+  }
+  if (x !== undefined) {
+    params.push('-x');
+    params.push(x);
+  }
+  if (y !== undefined) {
+    params.push('-y');
+    params.push(y);
+  }
+  if (o !== undefined) {
+    params.push('-opacity');
+    params.push(o);
+  }
+
   console.log(proc, params);
-  
+
   var child = spawn(proc, params);
-  child.stderr.on('data', function (data) { });
-  child.stdout.on('data', function (data) { });
-}
+  child.stderr.on('data', function (data) {});
+  child.stdout.on('data', function (data) {});
+};
 
 // ------------------------------------------
 //  EVENT
@@ -248,13 +332,13 @@ var chromeless = function(url, o, w, h, x, y){
 var events = require('events');
 var ee = new events.EventEmitter();
 
-var listen = function(event, callback){
+var listen = function (event, callback) {
   ee.on(event, callback);
-}
+};
 
-var trigger = function(event, data){
+var trigger = function (event, data) {
   ee.emit(event, data);
-}
+};
 
 // ------------------------------------------
 //  ASKME
@@ -262,67 +346,88 @@ var trigger = function(event, data){
 
 var stack = [];
 var options = false;
-var askme = function(tts, grammar, timeout, callback){
-  if (!grammar) { return; }
-  if (!callback){ return; }
-  if (options)  { return stack.push(arguments); }
-  
+var askme = function (tts, grammar, timeout, callback) {
+  if (!grammar) {
+    return;
+  }
+  if (!callback) {
+    return;
+  }
+  if (options) {
+    return stack.push(arguments);
+  }
+
   // Build request
-  options = { 'grammar':[], 'tags':[] }
+  options = {
+    'grammar': [],
+    'tags': []
+  };
   if (tts) options.tts = tts;
-  for (var g in grammar){
+  for (var g in grammar) {
     options.grammar.push(g);
     options.tags.push(grammar[g]);
   }
-  
+
   // Send request
   remote(options);
-  
-  // Backup
-  options.rule     = grammar
-  options.callback = callback;
-  options.token    = setTimeout(function(){
-      options = false;
-      if (timeout <= 0){
-        callback(false, function(){ options = false; asknext(); });
-      } else {
-        SARAH.askme(tts, grammar, 0, callback);
-      }
-  }, timeout || 8000);
-}
 
-var answerme = function(req, res, next){
-  if (!options){ return; }
-  if (options.token){
+  // Backup
+  options.rule = grammar;
+  options.callback = callback;
+  options.token = setTimeout(function () {
+    options = false;
+    if (timeout <= 0) {
+      callback(false, function () {
+        options = false;
+        asknext();
+      });
+    } else {
+      SARAH.askme(tts, grammar, 0, callback);
+    }
+  }, timeout || 8000);
+};
+
+var answerme = function (req, res, next) {
+  if (!options) {
+    return;
+  }
+  if (options.token) {
     clearTimeout(options.token);
   }
-  
-  res.end();
-  options.callback(req.param('tag'), function(){
-    options = false; asknext();  
-  });
-}
 
-var asknext = function(){
-  if (stack.length <= 0){ return; }
+  res.end();
+  options.callback(req.param('tag'), function () {
+    options = false;
+    asknext();
+  });
+};
+
+var asknext = function () {
+  if (stack.length <= 0) {
+    return;
+  }
   var args = stack.shift();
-  askme(args[0], args[1], args[2], args[3])
-}
+  askme(args[0], args[1], args[2], args[3]);
+};
 
 // ------------------------------------------
 //  RENDER WEBPAGE
 // ------------------------------------------
 
-var fs  = require('fs');
+var fs = require('fs');
 var ejs = require('ejs');
-var render = function(path, options){
-  var path = __dirname + '/../../' + path;
-  if (!fs.existsSync(path)){ return "<h4>File not found: "+path+"</h4>"; }
+var render = function (path, options) {
+  path = __dirname + '/../../' + path;
+  if (!fs.existsSync(path)) {
+    return "<h4>File not found: " + path + "</h4>";
+  }
   var text = fs.readFileSync(path, 'utf8');
-  
-  var options = options || { 'SARAH' : SARAH };
+
+  options = options || {
+    'SARAH': SARAH
+  };
   options.SARAH = SARAH;
-  
+
   return ejs.render(text, options);
 };
 
@@ -330,9 +435,9 @@ var render = function(path, options){
 //  CONTEXT
 // ------------------------------------------
 
-var routes = function(req, res, next){
+var routes = function (req, res, next) {
   var json = req.param('profiles');
-  if (json){
+  if (json) {
     SARAH.context.profiles = JSON.parse(json);
     winston.info('Updating profiles... ');
   }
@@ -344,82 +449,87 @@ var routes = function(req, res, next){
 // ------------------------------------------
 
 var SARAH = {
-  'init': function(){   
-    
-    SARAH.ConfigManager  = require('./config.js').init(SARAH);
-    SARAH.PluginManager  = require('./plugin.js').init(SARAH);
-    SARAH.RuleManager    = require('./rules.js').init(SARAH);
+  'init': function () {
+
+    SARAH.ConfigManager = require('./config.js').init(SARAH);
+    SARAH.PluginManager = require('./plugin.js').init(SARAH);
+    SARAH.RuleManager = require('./rules.js').init(SARAH);
     SARAH.PhantomManager = require('./phantom.js').init(SARAH);
-    SARAH.ScriptManager  = require('./script.js').init(SARAH);
-    SARAH.CRONManager    = require('./cron.js').init(SARAH);
-  
+    SARAH.ScriptManager = require('./script.js').init(SARAH);
+    SARAH.CRONManager = require('./cron.js').init(SARAH);
+
     return SARAH;
   },
-    
+
   'render': render,
-  
+
   // An object to store contextual stuff
-  'context' : {},
-  
+  'context': {},
+
   // Routes context
-  'routes' : routes,
-  
+  'routes': routes,
+
   // Callback for all scripts / phantom / cron
   'dispatch': dispatch,
-  
+
   // Send speak command on remote
-  'speak' : speak,
+  'speak': speak,
   'answer': answer,
-  
+
   // Send play command on remote
   'play': play,
-  
+
   // Send pause command on remote
   'pause': pause,
-  
+
   // Send face recognition command
   'face': face,
-  
+
   // Send gesture recognition command
   'gesture': gesture,
-  
+
   // AskMe
-  'askme' : askme,
-  'answerme' : answerme,
-  
+  'askme': askme,
+  'answerme': answerme,
+
   // EventEmiter
-  'listen'  : listen,
-  'trigger' : trigger,
-  
+  'listen': listen,
+  'trigger': trigger,
+
   // Keyboard remote commands
-  'runApp'  : runApp,
+  'runApp': runApp,
   'activate': activate,
-  'keyPress': function(key, mod) { _key(key, 'keyPress', mod) },
-  'keyDown' : function(key, mod) { _key(key, 'keyDown', mod) },
-  'keyUp'   : function(key, mod) { _key(key, 'keyUp', mod) },
-  'keyText' : keyText,
+  'keyPress': function (key, mod) {
+    _key(key, 'keyPress', mod);
+  },
+  'keyDown': function (key, mod) {
+    _key(key, 'keyDown', mod);
+  },
+  'keyUp': function (key, mod) {
+    _key(key, 'keyUp', mod);
+  },
+  'keyText': keyText,
   'chromeless': chromeless,
-  
+
   // General purpose remote action on WSRMacro
   'remote': remote,
-  
-  // Run local http request on given uri 
+
+  // Run local http request on given uri
   'script': script,
-  
+
   // Run local module
-  'run' : run,
+  'run': run,
   'call': call,
-  
+
   // Run last runned module
   'last': last,
-  
-  // Check if module exists
-  'exists' : exists,
-  
-  // Get RSS Feed
-  'getRSSFeed' : getRSSFeed
-}
 
+  // Check if module exists
+  'exists': exists,
+
+  // Get RSS Feed
+  'getRSSFeed': getRSSFeed
+};
 
 /**
  * EXPORTS
