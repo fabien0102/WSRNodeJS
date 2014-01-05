@@ -1,0 +1,13 @@
+{
+  "name": "jfeed",
+  "homepage": "https://github.com/jfhovinne/jFeed",
+  "_release": "0d411f761c",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "0d411f761c26013fb8f960d5a0a20f848706fdc5"
+  },
+  "_source": "git://github.com/jfhovinne/jFeed.git",
+  "_target": "*",
+  "_originalSource": "jfeed"
+}

@@ -38,7 +38,7 @@ var SARAH = require('./manager/sarah.js').init();
 // https://github.com/RandomEtc/ejs-locals
 
 // Init Express
-var __webapp = __dirname + '/../webapp';
+var __webapp = __dirname + '/../public';
 var express = require('express');
 var engine = require('ejs-locals');
 var routes = require(__webapp + '/routes');
