@@ -1,0 +1,27 @@
+{
+  "name": "WSRNodeJS",
+  "version": "3.1.1",
+  "homepage": "https://github.com/fabien0102/WSRNodeJS",
+  "description": "This is the Server Side of the framework [S.A.R.A.H.](http://encausse.net/s-a-r-a-h), an Home Automation project built \\r on top of:\\r * C# (Kinect) client for Voice, Gesture, Face, QRCode recognition. \\r * NodeJS (ExpressJS) server for Internet of Things communication",
+  "main": "script/wsrnode.js",
+  "authors": [
+    "jpencausse"
+  ],
+  "license": "DO WHAT THE FUCK YOU WANT TO",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "gridster": "~0.2.1",
+    "jquery": "~2.0.3",
+    "jfeed": "*",
+    "moment": "~2.5.0",
+    "bootstrap-switch": "~2.0.0",
+    "codemirror": "~3.20.0",
+    "bootstrap": "~3.0.3"
+  }
+}
