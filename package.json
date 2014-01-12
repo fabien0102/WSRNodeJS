@@ -4,6 +4,7 @@
   "description": "This is the Server Side of the framework [S.A.R.A.H.](http://encausse.net/s-a-r-a-h), an Home Automation project built \r on top of:\r * C# (Kinect) client for Voice, Gesture, Face, QRCode recognition. \r * NodeJS (ExpressJS) server for Internet of Things communication",
   "main": "script/wsrnode.js",
   "scripts": {
+    "start": "node script/wsrnode.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
