@@ -55,10 +55,8 @@ app.set('views', __webapp + '/views');
 app.set('view engine', 'ejs');
 
 // Set config
-app.use(express.bodyParser({
-  keepExtensions: true,
-  uploadDir: './webapp/uploads'
-}));
+app.use(express.urlencoded());
+app.use(express.json());
 app.use(express.methodOverride());
 app.use(express.cookieParser());
 app.use(express.session({
@@ -118,15 +116,6 @@ app.get('/standby', SARAH.PluginManager.standby);
 
 app.get('/rules', SARAH.RuleManager.routes);
 app.post('/rules', SARAH.RuleManager.save);
-
-// ==========================================
-//  UPLOAD SCRIPT
-// ==========================================
-
-var upload = require('./lib/upload.js');
-app.post('/upload*', function (req, res, next) {
-  upload.action(req, res, SARAH.ConfigManager.getConfig());
-});
 
 // ==========================================
 //  PHANTOM / SCRIPT
