@@ -14,8 +14,6 @@
         draggable: { stop: saveGrid } 
       });
       
-      if (jQuery.browser.msie){  $(document.body).addClass('ie'); }
-  
       $(document).on('click', '.flip-container .flip', function(event){
         event.preventDefault();
         $(event.currentTarget).closest('.flip-container').toggleClass('hover');
